@@ -1,5 +1,7 @@
 # Double Tap
 
+**Live:** https://suhxnitiwari.github.io/double-tap/
+
 Six years of my Instagram (2020–2026), parsed from Meta's data export: what kinds of reels I like, what I mark "not interested," how fast I decide, when I scroll, and how my taste changed.
 
 The site looks like an Instagram profile. Each highlight is one question, and the charts live inside the stories.
