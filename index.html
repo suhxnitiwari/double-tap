@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Double Tap</title>
+<meta name="description" content="Six years of my Instagram, parsed: what I like, what I reject, how fast I decide, when I scroll, and how it changed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FFFDFB; --card: #FFFFFF; --ink: #1E1517; --ink-2: #5E4E52; --muted: #8F7F83;
+  --line: #EFE6E6; --grid: #F4EDED;
+  --blue: #A77A1C; --rose: #8E2A3E; --brass: #A77A1C; --gray: #C2B6B8;
+  --heat-lo: #F8E9EC; --heat-hi: #6E1F33;
+  --ring-a: #C9A24A; --ring-b: #8E2A3E;
+  --scrim: rgba(24, 12, 15, .88);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1416; --card: #261B1E; --ink: #F5EBEC; --ink-2: #CDB9BD; --muted: #9C878C;
+    --line: #3C2C30; --grid: #33262A;
+    --blue: #B08A2C; --rose: #D0607A; --brass: #B08A2C; --gray: #6E5F63;
+    --heat-lo: #35242A; --heat-hi: #E79AAE;
+    --scrim: rgba(10, 5, 6, .92);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1416; --card: #261B1E; --ink: #F5EBEC; --ink-2: #CDB9BD; --muted: #9C878C;
+    --line: #3C2C30; --grid: #33262A;
+    --blue: #B08A2C; --rose: #D0607A; --brass: #B08A2C; --gray: #6E5F63;
+    --heat-lo: #35242A; --heat-hi: #E79AAE;
+    --scrim: rgba(10, 5, 6, .92);
+}
+* { box-sizing: border-box; margin: 0; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+.serif { font-family: "Cormorant Garamond", Georgia, serif; }
+
+/* ---------- profile */
+.wrap { max-width: 760px; margin: 0 auto; padding: 48px 16px 80px; }
+.profile { display: grid; grid-template-columns: auto 1fr; gap: 28px 40px; align-items: center; }
+.avatar.seen { background: var(--line); }
+.avatar:focus-visible { outline: 2px solid var(--blue); outline-offset: 4px; }
+.avatar { cursor: pointer; width: 132px; height: 132px; border-radius: 50%; padding: 4px; background: conic-gradient(var(--ring-a), var(--ring-b), var(--ring-a)); }
+.avatar img, .hl .ring img, .shead img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--bg); background: var(--card); }
+.glyph { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: var(--card); border: 3px solid var(--bg); font: 500 italic 26px "Cormorant Garamond", serif; color: var(--rose); }
+.avatar .glyph { font-size: 56px; }
+.shead .glyph { font-size: 16px; border-width: 0; border: 1px solid var(--line); }
+.name { font-weight: 600; font-size: 14px; margin-top: 2px; }
+.collab { display: flex; align-items: center; gap: 12px; }
+.collab .pair { position: relative; width: 52px; height: 46px; flex: none; }
+.collab .pair i { position: absolute; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 500 italic 17px "Cormorant Garamond", serif;
+  color: var(--rose); background: var(--card); border: 2px solid var(--bg); box-shadow: 0 0 0 1.5px var(--ring-a); font-style: italic; }
+.collab .pair i:first-child { top: 0; right: 0; }
+.collab .pair i:last-child { bottom: 0; left: 0; }
+.collab b { font-weight: 600; font-size: 17px; }
+.collab > span:last-child { font-size: 17px; line-height: 1.25; }
+.collab small { display: block; font-size: 14px; color: var(--ink-2); margin-top: 2px; }
+.handle { font-size: 20px; font-weight: 500; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.handle small { font-size: 14px; color: var(--muted); font-weight: 400; }
+.counts { margin: 14px 0; }
+.counts b { font-weight: 600; }
+.bio h1 { font: 600 26px/1.15 "Cormorant Garamond", serif; }
+.bio p { color: var(--ink); margin-top: 2px; max-width: 46ch; font-size: 14px; line-height: 1.4; }
+.bio .link { color: var(--rose); font-weight: 500; }
+
+.highlights { display: flex; gap: 22px; margin: 44px 0 36px; overflow-x: auto; padding: 4px 2px 8px; scrollbar-width: none; }
+.hl { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: none; width: 82px; }
+.hl .ring { width: 78px; height: 78px; border-radius: 50%; padding: 2px; background: linear-gradient(135deg, var(--ring-a), var(--ring-b)); }
+
+.hl.seen .ring { background: var(--line); }
+.hl small { font-size: 12px; font-weight: 600; color: var(--ink); text-align: center; line-height: 1.25; }
+.hl:focus-visible .ring { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+.tabs { border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); }
+.tabs button { display: grid; place-items: center; padding: 14px 0; color: var(--muted); border-top: 1px solid transparent; margin-top: -1px; }
+.tabs button.on { color: var(--ink); border-top-color: var(--ink); }
+.tabs button:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.tabnote { font-size: 12px; color: var(--muted); margin: 4px 0 12px; min-height: 1em; }
+.card { aspect-ratio: 1; background: linear-gradient(160deg, #2c1a20, #170d10); color: #fff; padding: 16px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; position: relative; text-decoration: none; }
+.card .k { position: absolute; top: 12px; left: 14px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.7); }
+.card .big { font: 600 italic 24px/1.1 "Cormorant Garamond", serif; }
+.card .line { font: 500 15px/1.25 "Cormorant Garamond", serif; color: rgba(255,255,255,.85); }
+.card .meta { font-size: 11px; color: rgba(255,255,255,.7); }
+.card .k { right: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .play { position: absolute; top: 12px; right: 12px; width: 18px; height: 18px; }
+.card.miss { background: linear-gradient(160deg, #3a2f31, #1f191a); }
+.card .verdict { position: absolute; top: 10px; right: 12px; font: 600 16px Inter, sans-serif; }
+@media (max-width: 560px) { .card { padding: 10px 8px; } .card .k { display: none; } .card .big { font-size: 17px; } .card .line { font-size: 12.5px; } .card .meta { font-size: 10px; } }
+.grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.tile { aspect-ratio: 4 / 5; padding: 18px 16px; text-align: left; color: #fff; position: relative; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; background: #2a1a1e center 30% / cover no-repeat; }
+.tile::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, rgba(22,10,13,.86) 0%, rgba(22,10,13,.45) 45%, rgba(22,10,13,.05) 75%); transition: opacity .2s; }
+.tile > * { position: relative; }
+.tile:hover::before, .tile:focus-visible::before { opacity: .85; }
+.tile .k { position: absolute; top: 14px; left: 16px; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.85); }
+.tile .big { font: 600 40px/1 Inter, sans-serif; letter-spacing: -.02em; }
+.tile .line { font: 500 18px/1.2 "Cormorant Garamond", serif; color: rgba(255,255,255,.9); }
+
+.moods { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: baseline; }
+.moods span { font-family: "Cormorant Garamond", serif; font-style: italic; font-weight: 500; line-height: 1.05; color: var(--ink); border-bottom: 1px solid var(--line); padding-bottom: 2px; }
+.moods span.top { color: var(--rose); }
+.cards { display: flex; flex-direction: column; gap: 10px; }
+.cards blockquote { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; font: 500 italic 19px/1.25 "Cormorant Garamond", serif; }
+.cards blockquote small { display: block; font: 400 11px Inter, sans-serif; color: var(--muted); margin-top: 6px; font-style: normal; letter-spacing: .04em; }
+.cards.no blockquote { border-style: dashed; color: var(--ink-2); }
+.vs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.vs div { border-radius: 14px; padding: 12px; background: var(--bg); border: 1px solid var(--line); }
+.vs h3 { font: 500 11px Inter, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.vs h3 i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.vs p { font: 500 italic 18px/1.25 "Cormorant Garamond", serif; margin-bottom: 6px; }
+.bubbles { display: flex; flex-direction: column; gap: 12px; }
+.bubbles div { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.bubbles small { font-size: 11px; color: var(--muted); letter-spacing: .04em; }
+.bubbles small b { color: var(--ink); font-weight: 600; letter-spacing: 0; }
+.bubbles p { background: var(--bg); border: 1px solid var(--line); border-radius: 18px 18px 18px 4px; padding: 8px 13px; font-size: 14px; max-width: 92%; }
+.counts { display: grid; grid-template-columns: repeat(4, auto); gap: 10px 28px; justify-content: start; }
+.counts span { display: flex; flex-direction: column; line-height: 1.2; font-size: 13px; color: var(--ink-2); }
+.counts b { font-size: 18px; color: var(--ink); }
+.tile .big.word { font: 600 italic 30px/1.05 "Cormorant Garamond", serif; letter-spacing: 0; }
+
+.doing { display: flex; flex-direction: column; }
+.doing div { padding: 9px 0; border-bottom: 1px solid var(--line); }
+.doing p { font: 500 italic 21px/1.15 "Cormorant Garamond", serif; }
+.doing small { font-size: 11px; color: var(--muted); }
+.foot { margin-top: 40px; color: var(--muted); font-size: 13px; text-align: center; }
+.foot button { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- story viewer */
+.viewer { position: fixed; inset: 0; background: var(--scrim); display: none; place-items: center; z-index: 10; }
+.viewer.open { display: grid; }
+.story { position: relative; width: min(430px, 100vw); height: min(calc(min(430px, 100vw) * 16 / 9), 100dvh); background: var(--card);
+  border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+@media (max-width: 480px) { .story { border-radius: 0; height: 100dvh; } }
+.bars { display: flex; gap: 3px; padding: 10px 12px 0; }
+.bars i { flex: 1; height: 2px; border-radius: 2px; background: var(--line); }
+.bars i.on { background: var(--ink); }
+.shead { display: flex; align-items: center; gap: 10px; padding: 10px 14px 4px; font-size: 13px; }
+.shead .dot { width: 32px; height: 32px; border-radius: 50%; flex: none; }
+.shead .dot img { border-width: 0; }
+.shead .who { font-weight: 600; }
+.shead .pos { color: var(--muted); }
+.shead .x { margin-left: auto; font-size: 22px; line-height: 1; padding: 4px 6px; color: var(--ink-2); }
+.frame { flex: 1; overflow-y: auto; padding: 14px 20px 18px; display: flex; flex-direction: column; gap: 12px; }
+.kicker { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.frame h2 { font: 600 27px/1.12 "Cormorant Garamond", serif; text-wrap: balance; }
+.frame .lede { color: var(--ink-2); font-size: 14px; }
+.frame .note { font-size: 12px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; margin-top: auto; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart text { font: 11px Inter, sans-serif; fill: var(--ink-2); }
+.chart text.strong { fill: var(--ink); font-weight: 500; }
+.chart text.v { fill: var(--ink); font-variant-numeric: tabular-nums; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .axis { stroke: var(--line); stroke-width: 1; }
+.legend { display: flex; gap: 16px; font-size: 12px; color: var(--ink-2); flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+.stat { border: 1px solid var(--line); border-radius: 10px; padding: 12px; background: var(--bg); }
+.stat b { display: block; font: 600 28px/1.05 Inter, sans-serif; letter-spacing: -.02em; }
+.stat span { font-size: 12px; color: var(--ink-2); line-height: 1.3; display: block; margin-top: 4px; }
+.hero { font: 600 64px/1 Inter, sans-serif; letter-spacing: -.03em; }
+.quotes { display: flex; flex-direction: column; gap: 10px; }
+.quotes div { display: grid; grid-template-columns: 44px 1fr; gap: 8px; font: 500 italic 18px/1.25 "Cormorant Garamond", serif; }
+.quotes small { font: 500 12px Inter, sans-serif; color: var(--muted); padding-top: 3px; }
+.eras { display: flex; flex-direction: column; }
+.eras div { display: grid; grid-template-columns: 48px 1fr; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.eras b { font-weight: 600; }
+.flow { display: flex; flex-direction: column; gap: 6px; }
+.flow div { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font-size: 13px; background: var(--bg); }
+.flow div b { font-weight: 600; }
+.flow em { font-style: normal; color: var(--muted); text-align: center; font-size: 12px; line-height: 1; }
+.datatoggle { align-self: flex-start; font-size: 12px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; }
+table.data { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+table.data th, table.data td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+table.data th { color: var(--muted); font-weight: 500; }
+table.data td:not(:first-child), table.data th:not(:first-child) { text-align: right; }
+.navzone { position: absolute; top: 60px; bottom: 0; width: 22%; z-index: 1; }
+.navzone.l { left: 0; } .navzone.r { right: 0; }
+.tip { position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--bg); font-size: 12px; padding: 6px 9px;
+  border-radius: 6px; max-width: 240px; opacity: 0; transition: opacity .1s; }
+.tip.on { opacity: 1; }
+[data-tip] { cursor: default; }
+.hit { fill: transparent; }
+@media (max-width: 560px) {
+  .wrap { padding-top: 28px; }
+  .profile { grid-template-columns: 1fr; justify-items: start; gap: 18px; }
+  .avatar { width: 96px; height: 96px; } .avatar span { font-size: 40px; }
+  .counts { gap: 10px 18px; grid-template-columns: repeat(2, auto); } .counts b { font-size: 16px; }
+  .tile { padding: 10px 8px; gap: 3px; } .tile .k { display: none; } .tile .big { font-size: 24px; } .tile .big.word { font-size: 18px; } .tile .line { font-size: 12.5px; line-height: 1.2; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header class="profile">
+    <button class="avatar" data-open="week" aria-label="View this week's story"><span class="glyph">♡</span></button>
+    <div>
+      <div class="collab">
+        <span class="pair" aria-hidden="true"><i>H</i><i>S</i></span>
+        <span><b>suhxnitiwari</b> and <b>hi.from.hani</b><small>Austin, Texas</small></span>
+      </div>
+      <div class="counts" id="counts"></div>
+      <div class="bio">
+        <p>romantic · ambitious · picky · stylish · dreamy</p>
+        <p>print(“welcome to six years of my likes, rejects and 1am scrolling — parsed, cleaned and labeled”) <span class="link">#spicydata</span></p>
+        <p class="link">Double Tap</p>
+      </div>
+    </div>
+  </header>
+  <nav class="highlights" id="highlights" aria-label="Story highlights"></nav>
+  <nav class="tabs" role="tablist"><button role="tab" data-tab="posts" aria-label="Posts" class="on"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></button><button role="tab" data-tab="saved" aria-label="Saved" class=""><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-5-6 5z"/></svg></button><button role="tab" data-tab="reposts" aria-label="Reposts" class=""><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l3 3-3 3"/><path d="M4 11V9a4 4 0 0 1 4-4h12"/><path d="M7 22l-3-3 3-3"/><path d="M20 13v2a4 4 0 0 1-4 4H4"/></svg></button><button role="tab" data-tab="tagged" aria-label="Tagged" class=""><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><circle cx="12" cy="11" r="3"/><path d="M7 19c1-2.5 3-3.5 5-3.5s4 1 5 3.5"/><path d="M9 4l1.5-2h3L15 4"/></svg></button></nav>
+  <p class="tabnote" id="tabnote"></p>
+  <section class="grid" id="grid"></section>
+  <section class="grid" id="saved" hidden></section>
+  <section class="grid" id="reposts" hidden></section>
+  <section class="grid" id="tagged" hidden></section>
+  <p class="foot">Built from 2,447 export files with Python. <button data-open="method">How it was made</button></p>
+</main>
+
+<div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Story">
+  <div class="story">
+    <div class="bars" id="bars"></div>
+    <div class="shead">
+      <span class="dot" id="sdot"></span><span class="who" id="swho"></span><span class="pos" id="spos"></span>
+      <button class="x" id="close" aria-label="Close">×</button>
+    </div>
+    <button class="navzone l" id="prev" aria-label="Previous"></button>
+    <button class="navzone r" id="next" aria-label="Next"></button>
+    <article class="frame" id="frame"></article>
+  </div>
+</div>
+<div class="tip" id="tip"></div>
+
+<script src="data.js"></script>
+<script>
+const D = window.DATA;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const pct = (x, d = 0) => (x * 100).toFixed(d) + "%";
+const num = x => Math.round(x).toLocaleString("en-US");
+const hourLabel = h => h === 0 ? "12 am" : h < 12 ? h + " am" : h === 12 ? "12 pm" : (h - 12) + " pm";
+const short = h => h === 0 ? "12a" : h < 12 ? h + "a" : h === 12 ? "12p" : (h - 12) + "p";
+const W = 380;
+
+// ---------- svg helpers
+const NS = "http://www.w3.org/2000/svg";
+function s(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function svg(h) { return s("svg", { viewBox: `0 0 ${W} ${h}`, role: "img" }); }
+function text(p, x, y, str, attrs = {}) { const t = s("text", { x, y, ...attrs }, p); t.textContent = str; return t; }
+// bar with 4px rounded data-end, square at the baseline
+function hbarPath(x, y, w, h, r = 4) {
+  if (w <= 0) return "";
+  r = Math.min(r, w, h / 2);
+  return `M${x},${y}h${w - r}a${r},${r} 0 0 1 ${r},${r}v${h - 2 * r}a${r},${r} 0 0 1 -${r},${r}h-${w - r}z`;
+}
+function hbarLeft(x, y, w, h, r = 4) { // grows leftward from x
+  if (w <= 0) return "";
+  r = Math.min(r, w, h / 2);
+  return `M${x},${y}h-${w - r}a${r},${r} 0 0 0 -${r},${r}v${h - 2 * r}a${r},${r} 0 0 0 ${r},${r}h${w - r}z`;
+}
+function vbarPath(x, y, w, h, r = 4) {
+  if (h <= 0) return "";
+  r = Math.min(r, h, w / 2);
+  return `M${x},${y + h}v-${h - r}a${r},${r} 0 0 1 ${r},-${r}h${w - 2 * r}a${r},${r} 0 0 1 ${r},${r}v${h - r}z`;
+}
+
+// ---------- chart forms
+function hbars(rows, { label, value, fmt, color = "--rose", labelW = 150, max, tip }) {
+  const rowH = 24, h = rows.length * rowH + 4, g = svg(h);
+  const x0 = labelW, x1 = W - 44, m = max ?? Math.max(...rows.map(value));
+  rows.forEach((r, i) => {
+    const y = i * rowH + 4, w = (x1 - x0) * value(r) / m;
+    text(g, x0 - 8, y + 12, label(r), { "text-anchor": "end", "class": "strong" });
+    s("path", { d: hbarPath(x0, y + 3, w, 12), fill: css(color) }, g);
+    text(g, x0 + w + 6, y + 13, fmt(value(r)), { "class": "v" });
+    s("rect", { x: 0, y, width: W, height: rowH, class: "hit", "data-tip": tip ? tip(r) : `${label(r)}: ${fmt(value(r))}` }, g);
+  });
+  s("line", { x1: x0, x2: x0, y1: 0, y2: h, class: "axis" }, g);
+  return g;
+}
+
+function diverging(rows, { label, value, labelW = 150, tip }) {
+  // value is a ratio; plotted on log2 so 2× and ½× sit the same distance from 1×
+  const rowH = 22, top = 18, h = rows.length * rowH + top + 4, g = svg(h);
+  const ext = Math.max(...rows.map(r => Math.abs(Math.log2(value(r)))));
+  const x0 = labelW, x1 = W - 40, mid = (x0 + x1) / 2, sc = (x1 - x0) / 2 / ext;
+  text(g, mid - 4, 10, "← less than you like it", { "text-anchor": "end", "font-size": 10 });
+  text(g, mid + 4, 10, "more →", { "font-size": 10 });
+  rows.forEach((r, i) => {
+    const y = top + i * rowH, v = Math.log2(value(r)), w = Math.abs(v) * sc;
+    text(g, x0 - 8, y + 12, label(r), { "text-anchor": "end", "class": "strong" });
+    if (v >= 0) s("path", { d: hbarPath(mid, y + 3, w, 11), fill: css("--rose") }, g);
+    else s("path", { d: hbarLeft(mid, y + 3, w, 11), fill: css("--blue") }, g);
+    // labels for leftward bars sit across the axis so they never run into the topic names
+    const tx = v >= 0 ? mid + w + 5 : mid + 5;
+    text(g, tx, y + 12, value(r).toFixed(1) + "×", { "class": "v" });
+    s("rect", { x: 0, y, width: W, height: rowH, class: "hit", "data-tip": tip(r) }, g);
+  });
+  s("line", { x1: mid, x2: mid, y1: top - 2, y2: h, stroke: css("--gray"), "stroke-width": 1 }, g);
+  return g;
+}
+
+function dumbbell(rows, { label, a, b, fmt, labelW = 150 }) {
+  const rowH = 26, h = rows.length * rowH + 22, g = svg(h);
+  const x0 = labelW + 8, x1 = W - 16, m = Math.max(...rows.flatMap(r => [a(r), b(r)])) * 1.05;
+  const x = v => x0 + (x1 - x0) * v / m;
+  [0, .05, .1].filter(t => t <= m).forEach(t => {
+    s("line", { x1: x(t), x2: x(t), y1: 0, y2: h - 18, class: "gridline" }, g);
+    text(g, x(t), h - 4, pct(t), { "text-anchor": "middle", "font-size": 10 });
+  });
+  rows.forEach((r, i) => {
+    const y = i * rowH + 12;
+    text(g, labelW, y + 4, label(r), { "text-anchor": "end", "class": "strong" });
+    s("line", { x1: x(a(r)), x2: x(b(r)), y1: y, y2: y, stroke: css("--gray"), "stroke-width": 2 }, g);
+    for (const [v, c] of [[a(r), "--rose"], [b(r), "--blue"]])
+      s("circle", { cx: x(v), cy: y, r: 5, fill: css(c), stroke: css("--card"), "stroke-width": 2 }, g);
+    s("rect", { x: 0, y: y - rowH / 2, width: W, height: rowH, class: "hit",
+      "data-tip": `${label(r)} — main ${fmt(a(r))}, spam ${fmt(b(r))}` }, g);
+  });
+  return g;
+}
+
+function columns(cats, series, { fmt, height = 170, colors, labelEvery = 1, total = true, tip }) {
+  // series: [{name, values}]; stacked when more than one
+  const top = 18, bottom = 22, h = height, g = svg(h), n = cats.length;
+  const sums = cats.map((_, i) => series.reduce((a, se) => a + se.values[i], 0));
+  const m = Math.max(...sums), band = (W - 8) / n, bw = Math.min(24, band * .62);
+  const yS = v => (h - top - bottom) * v / m;
+  s("line", { x1: 0, x2: W, y1: h - bottom, y2: h - bottom, class: "axis" }, g);
+  cats.forEach((c, i) => {
+    const cx = 4 + band * i + band / 2;
+    let base = h - bottom;
+    series.forEach((se, k) => {
+      const bh = yS(se.values[i]);
+      const last = k === series.length - 1;
+      const gap = k > 0 ? 2 : 0;
+      if (last) s("path", { d: vbarPath(cx - bw / 2, base - bh, bw, Math.max(0, bh - gap)), fill: css(colors[k]) }, g);
+      else s("rect", { x: cx - bw / 2, y: base - bh + gap, width: bw, height: Math.max(0, bh - gap), fill: css(colors[k]) }, g);
+      base -= bh;
+    });
+    if (total) text(g, cx, base - 5, fmt(sums[i]), { "text-anchor": "middle", "class": "v", "font-size": 10 });
+    if (i % labelEvery === 0) text(g, cx, h - 6, c, { "text-anchor": "middle", "font-size": 10 });
+    s("rect", { x: cx - band / 2, y: 0, width: band, height: h, class: "hit",
+      "data-tip": tip ? tip(i) : `${c}: ${fmt(sums[i])}` }, g);
+  });
+  return g;
+}
+
+function groupedH(cats, series, { fmt, labelW = 86 }) {
+  const rowH = 36, h = cats.length * rowH + 4, g = svg(h);
+  const x0 = labelW, x1 = W - 40, m = Math.max(...series.flatMap(se => se.values));
+  cats.forEach((c, i) => {
+    const y = i * rowH + 4;
+    text(g, x0 - 8, y + 18, c, { "text-anchor": "end", "class": "strong" });
+    series.forEach((se, k) => {
+      const w = (x1 - x0) * se.values[i] / m, by = y + 4 + k * 14;
+      s("path", { d: hbarPath(x0, by, w, 11), fill: css(se.color) }, g);
+      text(g, x0 + w + 5, by + 10, fmt(se.values[i]), { "class": "v", "font-size": 10 });
+    });
+    s("rect", { x: 0, y, width: W, height: rowH, class: "hit",
+      "data-tip": c + " — " + series.map(se => `${se.name} ${fmt(se.values[i])}`).join(", ") }, g);
+  });
+  s("line", { x1: x0, x2: x0, y1: 0, y2: h, class: "axis" }, g);
+  return g;
+}
+
+function line(xs, ys, { fmt, height = 170, color = "--rose", yMin = 0, yMax, notes, ref, tick, area = true }) {
+  const left = 34, right = 40, top = 20, bottom = notes ? 40 : 22, h = height, g = svg(h);
+  const lo = yMin, hi = yMax ?? Math.max(...ys) * 1.15;
+  const X = i => left + (W - left - right) * i / (xs.length - 1);
+  const Y = v => top + (h - top - bottom) * (1 - (v - lo) / (hi - lo));
+  const ticks = tick || [lo, (lo + hi) / 2, hi];
+  ticks.forEach(t => {
+    s("line", { x1: left, x2: W - right, y1: Y(t), y2: Y(t), class: "gridline" }, g);
+    text(g, left - 6, Y(t) + 4, fmt(t), { "text-anchor": "end", "font-size": 10 });
+  });
+  if (ref != null) s("line", { x1: left, x2: W - right, y1: Y(ref), y2: Y(ref), stroke: css("--gray"), "stroke-width": 1 }, g);
+  const pts = ys.map((v, i) => [X(i), Y(v)]);
+  if (area) s("path", { d: `M${pts[0][0]},${h - bottom}` + pts.map(p => `L${p[0]},${p[1]}`).join("") + `L${pts.at(-1)[0]},${h - bottom}Z`,
+    fill: css(color), opacity: .1 }, g);
+  s("path", { d: "M" + pts.map(p => p.join(",")).join("L"), fill: "none", stroke: css(color), "stroke-width": 2,
+    "stroke-linejoin": "round", "stroke-linecap": "round" }, g);
+  const labelEvery = xs.length > 12 ? Math.ceil(xs.length / 6) : 1;
+  pts.forEach(([x, y], i) => {
+    if (xs.length <= 12) s("circle", { cx: x, cy: y, r: 4, fill: css(color), stroke: css("--card"), "stroke-width": 2 }, g);
+    if (i % labelEvery === 0 && (xs.length <= 12 || i < xs.length - labelEvery / 2)) text(g, x, h - bottom + 14, xs[i], { "text-anchor": "middle", "font-size": 10 });
+    if (notes) text(g, x, h - 6, notes[i], { "text-anchor": "middle", "font-size": 10, "class": "strong" });
+    s("rect", { x: x - (W - left - right) / xs.length / 2, y: 0, width: (W - left - right) / xs.length, height: h, class: "hit",
+      "data-tip": `${xs[i]}: ${fmt(ys[i])}` + (notes ? ` · peak ${notes[i]}` : "") }, g);
+  });
+  const [ex, ey] = pts.at(-1);
+  text(g, ex + 8, ey + 4, fmt(ys.at(-1)), { "class": "v" });
+  if (xs.length > 12) text(g, pts[0][0] + 8, pts[0][1] - 8, fmt(ys[0]), { "class": "v" });
+  return g;
+}
+
+function heatmap(m) {
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const left = 32, top = 4, cell = (W - left) / 24, h = top + 7 * cell + 44, g = svg(h);
+  const max = Math.max(...m.flat()), lo = css("--heat-lo"), hi = css("--heat-hi");
+  const mix = t => { // interpolate in sRGB between the two ramp ends; sqrt keeps the quiet hours readable
+    const a = lo.match(/\w\w/g).map(x => parseInt(x, 16)), b = hi.match(/\w\w/g).map(x => parseInt(x, 16));
+    return "rgb(" + a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",") + ")";
+  };
+  m.forEach((row, d) => {
+    text(g, left - 6, top + d * cell + cell / 2 + 4, days[d], { "text-anchor": "end", "font-size": 10 });
+    row.forEach((v, hr) => {
+      s("rect", { x: left + hr * cell + 1, y: top + d * cell + 1, width: cell - 2, height: cell - 2, rx: 2, fill: mix(Math.sqrt(v / max)),
+        "data-tip": `${days[d]} ${hourLabel(hr)}: ${num(v)} actions` }, g);
+    });
+  });
+  [0, 6, 12, 18].forEach(hr => text(g, left + hr * cell + 1, top + 7 * cell + 14, hourLabel(hr), { "font-size": 10 }));
+  // ramp key
+  const kx = W - 120, ky = h - 11;
+  text(g, kx - 6, ky + 8, "fewer", { "text-anchor": "end", "font-size": 10 });
+  for (let i = 0; i < 6; i++) s("rect", { x: kx + i * 14, y: ky, width: 12, height: 10, rx: 2, fill: mix(i / 5) }, g);
+  text(g, kx + 6 * 14 + 4, ky + 8, "more", { "font-size": 10 });
+  return g;
+}
+
+function multiples(series, years) {
+  const cols = 2, pw = (W - 16) / cols, ph = 66, names = Object.keys(series), rows = Math.ceil(names.length / cols);
+  const g = svg(rows * ph);
+  names.forEach((name, k) => {
+    const ox = (k % cols) * (pw + 16), oy = Math.floor(k / cols) * ph, v = series[name];
+    const m = Math.max(...v), x = i => ox + 30 + (pw - 64) * i / (v.length - 1), y = val => oy + 50 - 28 * val / m;
+    text(g, ox, oy + 12, name, { "class": "strong", "font-size": 11 });
+    s("line", { x1: ox + 30, x2: ox + pw - 34, y1: oy + 50, y2: oy + 50, class: "axis" }, g);
+    s("path", { d: "M" + v.map((val, i) => `${x(i)},${y(val)}`).join("L"), fill: "none", stroke: css("--rose"), "stroke-width": 2,
+      "stroke-linejoin": "round", "stroke-linecap": "round" }, g);
+    const peak = v.indexOf(m);
+    s("circle", { cx: x(peak), cy: y(m), r: 4, fill: css("--rose"), stroke: css("--card"), "stroke-width": 2 }, g);
+    text(g, ox + 26, y(v[0]) + 4, pct(v[0]), { "text-anchor": "end", "font-size": 10 });
+    text(g, ox + pw - 30, y(v.at(-1)) + 4, pct(v.at(-1)), { "font-size": 10 });
+    s("rect", { x: ox, y: oy, width: pw, height: ph, class: "hit",
+      "data-tip": `${name}: ` + v.map((val, i) => `${years[i]} ${pct(val)}`).join(" · ") }, g);
+  });
+  return g;
+}
+
+function stack100(parts) {
+  const h = 54, g = svg(h); let x = 0;
+  parts.forEach((p, i) => {
+    const w = W * p.value - (i < parts.length - 1 ? 2 : 0);
+    s("rect", { x, y: 0, width: Math.max(0, w), height: 26, rx: 4, fill: css(p.color), "data-tip": `${p.name}: ${pct(p.value)}` }, g);
+    if (w > 46) text(g, x + 6, 44, pct(p.value), { "class": "v" });
+    x += W * p.value;
+  });
+  return g;
+}
+
+// ---------- frame builders
+const tiles = items => `<div class="tiles">${items.map(([b, t]) => `<div class="stat"><b>${b}</b><span>${t}</span></div>`).join("")}</div>`;
+const legend = items => `<div class="legend">${items.map(([c, n]) => `<span><i style="background:var(${c})"></i>${n}</span>`).join("")}</div>`;
+const tbl = (head, rows) => `<table class="data"><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</table>`;
+
+const T = D.totals, topics = D.topics, byTopic = Object.fromEntries(topics.map(t => [t.topic, t]));
+const years = [2021, 2022, 2023, 2024, 2025, 2026];
+const lift = x => x.toFixed(1) + "×";
+const bolly = byTopic["Bollywood & desi"];
+const sp = D.speed, wh = D.when, gr = D.growth, me = D.method;
+const peakHours = years.map(y => short(wh.peak_hour_by_year[y]));
+const likesYear = years.map(y => gr.likes_by_year[y].main + gr.likes_by_year[y].spam);
+const preBed = wh.heat.reduce((a, row) => a + row[22] + row[23] + row[0] + row[1], 0) / wh.heat_n;
+const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+const MOOD = {
+  "Dating & relationships": "hopeless romantic", "Bollywood & desi": "desi at heart", "College & career": "ambitious, a little tired",
+  "TV, film & celebs": "pop-culture fluent", "Fitness & wellness": "trying to be that girl", "Self-growth & mindset": "in my healing era",
+  "Motherhood & babies": "baby fever", "Travel & cities": "wanderlust", "Food & coffee": "iced coffee person", "Fashion & outfits": "dressed for the life I want",
+  "Makeup & beauty": "glam on standby", "Luxury, money & shopping": "old money dreams", "Friendship": "ride or die for the girls",
+  "Art, music & dance": "artist at heart", "Marriage & family life": "future wife jokes", "Weddings & bridal": "shaadi season",
+  "Women & culture": "women supporting women", "Books & reading": "book girlie",
+  "Home & aesthetic living": "cozy-core", "Pets & animals": "will stop for a puppy",
+};
+const FEEL = [
+  { kicker: "Hopeless romantic", title: "Love, dating and the occasional situationship",
+    lede: () => `One in every ${Math.round(1 / byTopic["Dating & relationships"].liked)} reels I like is about love. It's my biggest mood by far.`,
+    quotes: ["Plot twist: I'm dating the unpaid version of love", "I'm done with these hinge men only Blind Tuesdates for me now", "Possessed? Babe, that's called catching him in 4K🙂"] },
+  { kicker: "Desi at heart", title: "Street food, Hinglish, and my mom's voice in my head",
+    lede: () => `Desi reels are ${pct(bolly.sent, 0)} of everything I send, more than any other topic.`,
+    quotes: ["Desi mom and her choices are unbeatable 😂", "Yaar mummy 😭", "in a world full of Pookie dare to be a Bhookie 🤭🌶️"] },
+  { kicker: "Ambitious, a little tired", title: "Corporate dread, and a meeting that could've been an email",
+    lede: () => "College and career is the topic I almost never reject.",
+    quotes: ["29 minutes in. Monday. Nobody has said anything useful", "highkey facing corporate dread", "I could never do 5 days a week in the office"] },
+  { kicker: "In my healing era", title: "The reels I keep for myself",
+    lede: () => `I like and save these, and almost never reject them, but I send them to friends only ${byTopic["Self-growth & mindset"].send_lift.toFixed(1)}× as often as I like them. These are just for me.`,
+    label: "A reel I liked",
+    quotes: ["Sending love to everyone who's doing their best to heal from things they don't discuss.", "Sweetheart, self-respect isn't ego", "daily reminder: you have too much potential to give up on yourself. 🤍"] },
+];
+const VOICE = [
+  [2021, "the hype girl", "YK SHE PRETTY WHEN SHE MAKES OLIVE GREEN LOOK ACCEPTABLE"],
+  [2022, "the soft friend", "no thank you for being my friend"],
+  [2023, "the comedian", "stepping outside should not feel like you're stepping into an oven set at 360 degrees Fahrenheit"],
+  [2024, "the shopper", "Where is your dress from?"],
+  [2025, "the shopper, still", "Which color corrector do you use?"],
+  [2026, "the debater", "I thought you liked comments? Negative attention is still attention."],
+];
+const NOPE = [
+  ["Leave the goats ALONE", "pets"],
+  ["Tag a groom-to-be's mother who can dance like this…", "weddings"],
+  ["Tag a North Indian and educate them on what Kunj is", "Bollywood"],
+  ["HONEY GLOW 17% AHA + BHA RESURFACING ACID SERUM", "beauty"],
+];
+
+const SP = D.spam_season, KD = D.kind, WK = D.week, fmtDay = d => new Date(d + "T12:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const STORIES = [
+  { id: "week", name: "This week", img: "avatar", hidden: true, frames: [
+    { kicker: "My story · this week", title: "My week, according to Instagram",
+      lede: `${fmtDay(WK.start)} – ${fmtDay(WK.end)}. The one week Instagram keeps of everything I actually watched and scrolled past. This week I was…`,
+      body: () => `<div class="doing">${WK.groups.map(g => `<div><p>${g.name}</p><small>${g.accounts.join(" · ")}</small></div>`).join("")}</div>`,
+      table: () => tbl(["This week I was", "Reels & posts"], WK.groups.map(g => [g.name, g.n])),
+      note: `${num(WK.n)} reels and posts seen. Accounts grouped by hand.` },
+    { kicker: "My story · this week", title: `One in four things I saw this week, I saw between 1 and 5 am`,
+      lede: "The pre‑bed doom scroll, caught in the act.",
+      chart: () => columns([...Array(24).keys()].map(h => short(h)), [{ values: WK.hours }],
+        { fmt: num, colors: ["--rose"], labelEvery: 6, total: false, height: 140, tip: i => `${hourLabel(i)}: ${WK.hours[i]} seen` }),
+      table: () => tbl(["Hour", "Seen"], WK.hours.map((v, h) => [hourLabel(h), v])),
+      note: `Exactly ${pct(WK.late)} between 1 and 5 am, Austin time. Busiest day: ${WK.busiest_day}.` },
+    { kicker: "My story · this week", title: `The ad that wouldn't leave: Coach's Tabby bag, ${WK.coach_repeats} times`,
+      body: () => `<div class="cards">
+        <blockquote>Coach's Tabby bag<small>${WK.coach_repeats} times, from two different creators</small></blockquote>
+        <blockquote>a metal safety razor<small>${WK.top_repeats.leafshave} times</small></blockquote>
+        <blockquote>an AI app builder<small>${WK["top_repeats"]["lovable.dev"]} times</small></blockquote>
+        <blockquote>Wix, in Spanish<small>${WK.top_repeats.wix} times</small></blockquote></div>`,
+      lede: "The videos I saw most often this week weren't from friends. They were ads.",
+      note: "Counted from Instagram's videos-watched log, the only watch history it keeps." },
+  ]},
+  { id: "taste", name: "Obsessing", img: "hl-loving", frames: [
+    { kicker: "If my feed were a person", title: topics.filter(t => t.topic !== "Bollywood & desi").slice(0, 3).map(t => MOOD[t.topic]).join(", ").replace(/^./, c => c.toUpperCase()),
+      lede: "Every mood my likes add up to, sized by how much of my feed it takes.",
+      body: () => { const top = topics.slice(0, 14), m = top[0].liked;
+        return `<div class="moods">${top.map((t, i) => `<span class="${i < 4 ? "top" : ""}" style="font-size:${(15 + 25 * Math.sqrt(t.liked / m)).toFixed(0)}px" data-tip="${t.topic}">${MOOD[t.topic]}</span>`).join("")}</div>`; },
+      table: () => tbl(["Mood", "Topic", "Share of likes"], topics.map(t => [MOOD[t.topic], t.topic, pct(t.liked, 1)])),
+      note: "Moods are my names for the topics the pipeline found. Hover one to see its topic." },
+    ...FEEL.map(f => ({ kicker: f.kicker, title: f.title, lede: f.lede(),
+      body: () => `<div class="cards">${f.quotes.map(q => `<blockquote>“${q}”<small>${f.label || "A reel I liked and sent to a friend"}</small></blockquote>`).join("")}</div>`,
+      note: "Real captions from reels in my data, hashtags and handles trimmed." })),
+    { kicker: "The other account", title: "The spam account comes back when I'm rebuilding",
+      lede: `Share of all my likes that came from @hi.from.hani. It took over in early 2022, went quiet once college started, then came back for a self-upgrade season peaking in ${SP.upgrade_peak}.`,
+      chart: () => line(SP.quarters.map(q => q.replace(" Q1", "").replace(/ Q[234]/, "")), SP.share, { fmt: v => pct(v), yMax: .8, tick: [0, .4, .8] }),
+      table: () => tbl(["Quarter", "Spam share of likes"], SP.quarters.map((q, i) => [q, pct(SP.share[i])])) },
+    { kicker: "The other account", title: "What the comeback was made of",
+      lede: "How much more often each theme shows up on the spam account than on main.",
+      chart: () => hbars(SP.themes, { label: r => r.theme, value: r => r.lift, fmt: v => v.toFixed(1) + "×", labelW: 130 }),
+      body: () => `<div class="cards">${["You only need 3 daily wins", "Degree Earned. Standards Upgraded", "The kind of love where you don't have to abandon yourself to be chosen"].map(q => `<blockquote>“${q}”<small>A reel I liked on the spam account</small></blockquote>`).join("")}</div>`,
+      note: "Most of it came from three accounts: @goodmindsquote, @linalmd and @billionaire_girls_sayings." },
+    { kicker: "Two accounts, two girls", title: "Main is out with her family. Spam is home, journaling.",
+      body: () => `<div class="vs">
+        <div><h3><i style="background:var(--rose)"></i>@suhxnitiwari</h3>${["desi", "travel", "babies & family", "career"].map(x => `<p>${x}</p>`).join("")}</div>
+        <div><h3><i style="background:var(--blue)"></i>@hi.from.hani</h3>${["healing", "luxury", "books", "cozy home"].map(x => `<p>${x}</p>`).join("")}</div></div>`,
+      lede: `Self-growth reels are almost ${(D.accounts[0].spam / D.accounts[0].main).toFixed(0)}× as common on the spam account.`,
+      chart: () => { const d = document.createElement("div"); d.innerHTML = legend([["--rose", "@suhxnitiwari"], ["--blue", "@hi.from.hani"]]);
+        d.append(dumbbell(D.accounts.slice(0, 7), { label: r => r.topic, a: r => r.main, b: r => r.spam, fmt: v => pct(v, 1) })); return d; },
+      table: () => tbl(["Topic", "Main", "Spam"], D.accounts.map(a => [a.topic, pct(a.main, 1), pct(a.spam, 1)])),
+      note: "Shares are of each account's own labeled reels." },
+  ]},
+  { id: "reject", name: "Rejecting", img: "hl-swiping", frames: [
+    { kicker: "What I swipe away", title: "Other people's pets and weddings",
+      lede: "These get “not interested” two to three times more often than I like them.",
+      body: () => `<div class="cards no">${NOPE.map(([q, t]) => `<blockquote>“${q}”<small>Not interested · ${t}</small></blockquote>`).join("")}</div>`,
+      table: () => tbl(["Year", "Not interested"], years.map(y => [y, num(D.ni.by_year[y])])),
+      note: `Real captions from reels I marked not interested. Half of all my rejections happened in 2024, my big cleanup year.` },
+    { kicker: "What I swipe away", title: "Books and self-growth are safe. Pets and weddings are not.",
+      lede: "Each topic's share of my rejections divided by its share of my likes.",
+      chart: () => diverging([...topics].sort((a, b) => b.reject_lift - a.reject_lift), { label: r => r.topic, value: r => r.reject_lift,
+        tip: r => `${r.topic}: ${pct(r.rejected, 1)} of rejections vs ${pct(r.liked, 1)} of likes` }),
+      table: () => tbl(["Topic", "Rejected", "Liked", "Ratio"], topics.map(t => [t.topic, pct(t.rejected, 1), pct(t.liked, 1), lift(t.reject_lift)])) },
+    { kicker: "The paradox", title: "I love Bollywood. Just not the fan-page version.",
+      lede: "It's my #1 topic in what I send and in what I reject. The words in those captions show why.",
+      body: () => `<div class="vs">
+        <div><h3><i style="background:var(--blue)"></i>I send</h3>${["desi mom memes", "chai & Indian food", "Hinglish jokes", "emotional songs"].map(x => `<p>${x}</p>`).join("")}</div>
+        <div><h3><i style="background:var(--rose)"></i>I swipe away</h3>${["actress fan edits", "trending-song edits", "“tag a Gujju”", "designer wear"].map(x => `<p>${x}</p>`).join("")}</div></div>`,
+      table: () => tbl(["Bollywood & desi", "Share"], [["of my likes", pct(bolly.liked, 1)], ["of my sends", pct(bolly.sent, 1)], ["of my rejections", pct(bolly.rejected, 1)]]),
+      note: "Words that lean hardest toward sent vs. rejected Bollywood captions (log-odds), grouped by hand." },
+    { kicker: "Cleanup mode", title: "I don't reject one reel. I clean house.",
+      lede: `Once I tap “not interested,” the next tap is another one ${pct(D.ni.streak)} of the time. Most of it happens on the Reels tab.`,
+      note: "Next action within 20 minutes, across likes and rejections." },
+  ]},
+  { id: "speed", name: "Choosing", img: "hl-deciding", frames: [
+    { kicker: "Decision speed", title: "I reject faster than I like",
+      lede: `${pct(sp.gap_dist.ni["same minute"])} of rejections land in the same minute as my previous tap, against ${pct(sp.gap_dist.like["same minute"])} of likes. “No” is instant; “yes” takes a watch.`,
+      chart: () => { const d = document.createElement("div"); d.innerHTML = legend([["--blue", "Like"], ["--rose", "Not interested"]]);
+        const cats = Object.keys(sp.gap_dist.like);
+        d.append(groupedH(cats, [{ name: "Like", color: "--blue", values: cats.map(c => sp.gap_dist.like[c]) },
+          { name: "Not interested", color: "--rose", values: cats.map(c => sp.gap_dist.ni[c]) }], { fmt: v => pct(v) })); return d; },
+      table: () => tbl(["Time since last tap", "Like", "Not interested"], Object.keys(sp.gap_dist.like).map(c => [c, pct(sp.gap_dist.like[c]), pct(sp.gap_dist.ni[c])])),
+      note: "Instagram timestamps to the minute, so this compares buckets, not seconds." },
+    { kicker: "Reel age", title: `The reels I like are about ${Math.round(sp.age_median_days / 7)} weeks old`,
+      lede: `Median age at the moment I liked it: ${sp.age_median_days} days. A third were 1–12 months old.`,
+      chart: () => { const k = Object.keys(sp.age_dist), lab = ["<1h", "1–24h", "1–7d", "1–4wk", "1–12mo", ">1yr"];
+        return columns(lab, [{ values: k.map(x => sp.age_dist[x]) }], { fmt: v => pct(v), colors: ["--rose"], tip: i => `${k[i]} old: ${pct(sp.age_dist[k[i]], 1)}` }); },
+      table: () => tbl(["Age when liked", "Share"], Object.entries(sp.age_dist).map(([k, v]) => [k, pct(v, 1)])),
+      note: "Each reel's post time is decoded from its URL: the shortcode is base64 for an ID whose top bits are milliseconds since Instagram's epoch." },
+    { kicker: "Reel age", title: `I'm catching reels earlier: ${pct(sp.fresh_by_year[2026])} are under a day old in 2026`,
+      chart: () => line(years, years.map(y => sp.fresh_by_year[y]), { fmt: v => pct(v), yMax: .3, tick: [0, .1, .2, .3] }),
+      table: () => tbl(["Year", "Liked within 24h of posting"], years.map(y => [y, pct(sp.fresh_by_year[y], 1)])),
+      note: "Share of liked reels that were less than 24 hours old." },
+    { kicker: "Friends' sends", title: `Only ${pct(sp.recv_liked)} of reels friends send me get a like`,
+      body: () => tiles([[pct(sp.recv_liked_first), "of those I'd already liked before they sent it"], [pct(sp.recv_within_hour), "liked within an hour"], [Math.round(sp.recv_lag_median_h * 60) + " min", "median wait otherwise"]]),
+      lede: "When a friend's reel does land, I've often found it first.",
+      note: `${num(T.received)} reels friends sent me across both accounts. Reels I sent between my own accounts are left out.` },
+    { kicker: "Binge pace", title: `In a binge I like a reel every ${sp.binge_sec_per_like} seconds`,
+      body: () => tiles([[num(sp.binges), "binge sessions (10+ taps, no 20-min break)"], [sp.binge_median_min + " min", "median binge length"], [sp.binge_sec_per_like + "s", "between likes, median"]]),
+      note: "Sessions split wherever 20 minutes pass without a like or rejection." },
+  ]},
+  { id: "when", name: "Scrolling", img: "hl-scrolling", frames: [
+    { kicker: "When I scroll", title: "Prime time is the pre‑bed doom scroll",
+      lede: `${pct(preBed)} of my taps in 2025–26 happen between 10 pm and 2 am, the hours I should be asleep. Every like, rejection, story like, comment and send (${num(wh.heat_n)} taps), by hour and weekday, Austin time.`,
+      chart: () => heatmap(wh.heat),
+      table: () => tbl(["Hour", "Share of all taps"], wh.hour_share.map((v, h) => [hourLabel(h), pct(v, 1)])),
+      note: "Meta stamps exports in UTC−8 all year. Every time was shifted to UTC, then to America/Chicago (see How it was made)." },
+    { kicker: "When I scroll", title: `And it keeps getting later: ${pct(wh.late_by_year[2026])} of 2026 happens between 10 pm and 3 am`,
+      lede: "Share of activity between 10 pm and 3 am, with each year's single busiest hour underneath.",
+      chart: () => line(years, years.map(y => wh.late_by_year[y]), { fmt: v => pct(v), yMax: .5, tick: [0, .25, .5], notes: peakHours }),
+      table: () => tbl(["Year", "10 pm–3 am", "Peak hour"], years.map((y, i) => [y, pct(wh.late_by_year[y], 1), peakHours[i]])),
+      note: "Peak hour moved from 9 pm in 2023 to 1 am in 2026." },
+    { kicker: "When I scroll", title: "My daytime scrolling got cut in half",
+      lede: "Share of weekday activity between 9 am and 3 pm. My days filled up, so the scrolling moved to night.",
+      chart: () => line(years, years.map(y => wh.school_by_year[y]), { fmt: v => pct(v), yMax: .3, tick: [0, .1, .2, .3], color: "--blue" }),
+      table: () => tbl(["Year", "Weekday 9 am–3 pm"], years.map(y => [y, pct(wh.school_by_year[y], 1)])),
+      note: "The “why” is an inference from the timing, not something the data records." },
+    { kicker: "When I scroll", title: "October to December is my quietest stretch",
+      lede: `Average taps per active day by month. October to December drops to ~${Math.round(Math.min(...wh.per_day_by_month.slice(9)))}/day; March and summer climb past 40.`,
+      chart: () => columns(months.map(m => m[0]), [{ values: wh.per_day_by_month }], { fmt: v => Math.round(v), colors: ["--rose"], tip: i => `${months[i]}: ${wh.per_day_by_month[i]} per day` }),
+      table: () => tbl(["Month", "Taps per active day"], months.map((m, i) => [m, wh.per_day_by_month[i]])),
+      note: `Biggest single day: ${new Date(wh.top_days[0].date + "T12:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}, ${wh.top_days[0].n} taps. Midterms and finals vs. breaks is my reading of the pattern.` },
+  ]},
+  { id: "growth", name: "Leveling up", img: "hl-growing", frames: [
+    { kicker: "Growing up online", title: `${(likesYear[5] / likesYear[0]).toFixed(0)}× the likes, five years later`,
+      lede: "Likes per year across both accounts. 2026 runs through October 2.",
+      chart: () => { const d = document.createElement("div"); d.innerHTML = legend([["--rose", "@suhxnitiwari"], ["--blue", "@hi.from.hani"]]);
+        d.append(columns(years, [{ values: years.map(y => gr.likes_by_year[y].main) }, { values: years.map(y => gr.likes_by_year[y].spam) }],
+          { fmt: v => (v / 1000).toFixed(1) + "k", colors: ["--rose", "--blue"], tip: i => `${years[i]}: main ${num(gr.likes_by_year[years[i]].main)}, spam ${num(gr.likes_by_year[years[i]].spam)}` })); return d; },
+      table: () => tbl(["Year", "Main", "Spam"], years.map(y => [y, num(gr.likes_by_year[y].main), num(gr.likes_by_year[y].spam)])),
+      note: "The spam account peaked in 2025; the main account is still climbing." },
+    { kicker: "Growing up online", title: "What I like turned over completely",
+      lede: "The ten topics that moved most, as a share of each year's liked reels. Dot marks each topic's peak year.",
+      chart: () => multiples(gr.topic_years, years),
+      table: () => tbl(["Topic", ...years], Object.entries(gr.topic_years).map(([t, v]) => [t, ...v.map(x => pct(x, 0))])),
+      note: `Each panel has its own scale. 2021 rests on only ${gr.n_by_year[0]} labeled reels, so its numbers are noisy.` },
+    { kicker: "Growing up online", title: "Every year has a signature",
+      lede: "The topics each year over-indexed on most, relative to my six-year average.",
+      body: () => `<div class="eras">${years.map(y => `<div><b>${y}</b><span>${gr.signature[y].join(" · ")}</span></div>`).join("")}</div>`,
+      note: "From student and artist, to reader, to the love year, to travel and money, to the wider world." },
+    { kicker: "In my own words", title: "From hype girl to “where is your dress from?”",
+      lede: "My own comments, one era at a time.",
+      body: () => `<div class="bubbles">${VOICE.map(([y, who, q]) => `<div><small>${y} · <b>${who}</b></small><p>${q}</p></div>`).join("")}</div>`,
+      table: () => tbl(["Year", "Comments", "ALL CAPS", "Tag a friend", "Shopping question"], years.map((y, i) =>
+        [y, num(gr.comments_by_year[i]), pct(gr.comment_caps[i]), pct(gr.comment_tag_share[i]), pct(gr.comment_shop_q[i], 1)])),
+      note: () => `${pct(gr.comment_caps[0])} of my 2021 comments were in ALL CAPS; in 2026 it's ${pct(gr.comment_caps[5])}. Shopping questions went from zero to about 1 in 20. Friends' handles removed.` },
+  ]},
+  { id: "giving", name: "Loving", img: "hl-giving", frames: [
+    { kicker: "Gratitude", title: "Grateful, and not shy about saying it",
+      lede: `${KD.thanks} of my comments say thank you, and I've liked ${num(KD.liked_gratitude)} reels about gratitude and ${KD.liked_parents} about loving my parents.`,
+      body: () => `<div class="cards">${["thank you Mumma ❤️❤️❤️", "I still appreciate how special you made me feel on my 13th birthday!"].map(q => `<blockquote>“${q}”<small>My comment</small></blockquote>`).join("")}</div>`,
+      note: "My own comments, with names removed." },
+    { kicker: "Everyone's hype girl", title: "My comments are mostly love",
+      lede: `${KD.compliments} compliments, ${KD.birthdays} birthday wishes and ${KD.congrats} congratulations, against ${KD.digs} comments with anything sharper, and those are jokes with friends.`,
+      body: () => `<div class="cards">${["I'm so proud of you and your journey!", "Best of luck at Yale!!", "IM ROOTING FOR YOU GUYS", "you're so beautiful, smart, and talented! I'm so happy for you!!!!"].map(q => `<blockquote>“${q}”<small>My comment</small></blockquote>`).join("")}</div>`,
+      table: () => tbl(["Kind of comment", "Count"], [["Compliments", KD.compliments], ["Thank yous", KD.thanks], ["Birthday wishes", KD.birthdays], ["Congrats & proud of you", KD.congrats], ["Love you / miss you", KD.love]]) },
+    { kicker: "Showing up", title: "I don't leave a friend's story on seen",
+      lede: `I liked ${num(KD.story_likes_by_year[2022])} stories in 2022 and ${num(KD.story_likes_by_year[2025])} in 2025.`,
+      table: () => tbl(["Year", "Story likes"], Object.entries(KD.story_likes_by_year)) },
+    { kicker: "Sticking up for people", title: "And I'll say something when it matters",
+      body: () => `<div class="cards"><blockquote>“Nothing wrong with being happy to see kids of various backgrounds get gifts.”<small>My comment</small></blockquote></div>` },
+  ]},
+  { id: "method", name: "How it was made", img: "hl-building", hidden: true, frames: [
+    { kicker: "The pipeline", title: "From 3.5 GB of exports to one page",
+      body: () => `<div class="flow">
+        <div><b>3 exports</b>: two Instagram accounts and Facebook, ${num(me.html_files)} HTML files</div><em>↓</em>
+        <div><b>Parse</b>: BeautifulSoup reads Meta's nested label/value tables into 12 tidy tables, plus ${num(T.dm_shares)} reel shares from DMs (no message text kept)</div><em>↓</em>
+        <div><b>Fix time</b>: decode post times from reel IDs, prove the export's timezone, convert to Austin</div><em>↓</em>
+        <div><b>Label</b>: embed ${num(me.media)} captions with a local multilingual model; rules → classifier → creator vote</div><em>↓</em>
+        <div><b>Analyze</b>: pandas computes every number here into one data file</div></div>`,
+      note: "Everything runs locally. No captions or messages were sent to any API." },
+    { kicker: "Timezone detective", title: "Meta stamps every export in UTC−8, all year",
+      lede: "Nobody can like a reel before it's posted. So in each month, the earliest likes relative to post time reveal the clock offset: a flat −8 hours, with no summer shift.",
+      chart: () => line(me.tz_floor.map(d => d.m.slice(2).replace("-", "/")), me.tz_floor.map(d => d.h), { fmt: v => v.toFixed(0) + "h", yMin: -10, yMax: -6, tick: [-10, -8, -6], ref: -8, color: "--blue", area: false }),
+      table: () => tbl(["Month", "Earliest like vs post (h)"], me.tz_floor.map(d => [d.m, d.h])),
+      note: "Plotted: the 0.5th percentile of (export time − decoded post time) per month. Without this fix every hour on this page would be off by 2–3 hours." },
+    { kicker: "Topic labels", title: "Three passes, each catching what the last missed",
+      chart: () => { const L = me.label_steps;
+        return hbars([{ k: "Keyword rules", v: L.rules }, { k: "Classifier", v: L.model }, { k: "Creator's usual topic", v: L.creator },
+          { k: "Still unlabeled", v: 1 - L.rules - L.model - L.creator }], { label: r => r.k, value: r => r.v, fmt: v => pct(v), max: 1 }); },
+      lede: "Rules handle captions that say what they are. A logistic-regression classifier on caption embeddings handles fuzzier ones, kept only above 60% confidence. Emoji-only reels inherit their creator's usual topic.",
+      note: "The classifier agrees with the rules on 73% of held-out captions. I hand-checked 40 random labels: about 30 were right." },
+    { kicker: "Limits", title: "What this data can't say",
+      body: () => `<div class="eras">
+        <div><b>Watch</b><span>Instagram keeps one week of watch history (370 rows, mostly sponsored), so likes stand in for watching.</span></div>
+        <div><b>Time</b><span>Timestamps are to the minute; decision speed is measured in buckets.</span></div>
+        <div><b>DMs</b><span>Shared reels only go back to August 2023.</span></div>
+        <div><b>Topics</b><span>Roughly 3 in 4 labels are right. Good for trends, not for any single reel.</span></div></div>` },
+  ]},
+];
+
+// highlight initials spell S-C-R-O-L-L
+const ORDER = ["week", "when", "speed", "reject", "taste", "growth", "giving", "method"];
+STORIES.sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
+
+const GRID = [
+  ["taste", 0, "hopeless romantic", "and ambitious, picky, stylish, dreamy", true],
+  ["reject", 0, "not for me", "other people's pets and weddings", true],
+  ["when", 0, pct(preBed), "of my taps are the pre‑bed doom scroll"],
+  ["reject", 2, "the paradox", "I love Bollywood, just not the fan-page version", true],
+  ["taste", "Two accounts, two girls", "two girls", "main is out with family; spam is home, journaling", true],
+  ["speed", 0, "no is instant", "I reject faster than I like", true],
+  ["growth", 2, "the love year", "2024: weddings, marriage and dating", true],
+  ["growth", 3, "hype girl → shopper", "my comments, one era at a time", true],
+  ["taste", "The other account", "the comeback", "my spam account returns when I'm rebuilding", true],
+];
+
+// ---------- page
+// header: biggest number first, both accounts combined
+const DAYS = Math.round((new Date(T.last) - new Date(T.first)) / 864e5);
+document.getElementById("counts").innerHTML = [[T.likes, "likes"], [T.sent, "reels sent"], [DAYS, "days of history"], [T.not_interested, "not interested"]]
+  .sort((x, y) => y[0] - x[0]).map(([n, l]) => `<span><b>${num(n)}</b>${l}</span>`).join("");
+const hlEl = document.getElementById("highlights");
+STORIES.filter(st => !st.hidden).forEach((st, i) => {
+  const b = document.createElement("button");
+  b.className = "hl"; b.dataset.open = st.id;
+  b.innerHTML = `<span class="ring"><span class="glyph">${st.name[0]}</span></span><small>${st.name}</small>`;
+  hlEl.append(b);
+});
+const gridEl = document.getElementById("grid");
+GRID.forEach(([id, f, big, line, word], i) => {
+  const st = STORIES.find(s => s.id === id), b = document.createElement("button");
+  b.className = "tile"; b.dataset.open = id; b.dataset.frame = typeof f === "string" ? st.frames.findIndex(fr => fr.kicker === f) : f; 
+  b.innerHTML = `<span class="k">${st.name}</span><span class="big${word ? " word" : ""}">${big}</span><span class="line">${line}</span>`;
+  gridEl.append(b);
+});
+
+
+// ---------- profile tabs
+const TABNOTE = {
+  posts: "",
+  saved: `What's inside ${num(D.saved_total)} saves across both accounts`,
+  reposts: `What ${num(D.reposts.n)} reposts across both accounts have in common`,
+  tagged: "How Meta's ad system tags me, and what my own data says about it",
+};
+const monthYear = d => d ? new Date(d + "T12:00").toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "";
+// saved: what's inside my saves, grouped the way my collections are, 3 x 5
+const SG = D.saved_groups, pick = (g, i) => SG[g][i];
+const places = SG["places to try"].filter(p => p[1] > 1);
+const SAVED_CARDS = [
+  ...["tutorials", "self-help"].flatMap(g => SG[g].slice(0, g === "tutorials" ? 4 : 6).map(([k, n]) => [g, k, `${n} saves`])),
+  ...SG.food.slice(0, 2).map(([k, n]) => ["food", k, `${n} saves`]),
+  ["places to try", places.map(p => p[0]).join(" · "), `${places[0][0]} most: ${places[0][1]} saves, mostly cafés and hidden gems`],
+  ["fashion", `${SG.fashion[0][0]}, ${SG.fashion[1][0]}`, `${SG.fashion[0][1] + SG.fashion[1][1]} saves; only ${SG.fashion.find(f => f[0] === "shoes")[1]} are shoes`],
+  ["feelings", pick("feelings", 0)[0], `${pick("feelings", 0)[1]} saves`],
+].slice(0, 15);
+document.getElementById("saved").innerHTML = SAVED_CARDS.map(([k, big, meta]) =>
+  `<div class="card"><span class="k">${k}</span><span class="${big.length > 26 ? "line" : "big"}">${big}</span><span class="meta">${meta}</span></div>`).join("");
+// reposts: the pattern across both accounts, not individual posts
+const RP = D.reposts_pattern, RL = D.reposts.lift;
+const hourName = h => hourLabel(h).replace(" ", "");
+const REPOST_CARDS = [
+  ["the new save button", `${RP.q_reposts} reposts`, `vs ${RP.q_saves} saves in ${RP.q_label}`],
+  ["a public like", pct(RP.liked_first), `of reposts I'd already liked; ${pct(RP.saved_too)} I'd saved`],
+  ["the spam account reposts", `${RP.by_account.spam} vs ${RP.by_account.main}`, "reposts on spam vs main"],
+  ["one sitting", `${RP.biggest_session} reposts`, `on ${new Date(RP.biggest_session_date + "T12:00").toLocaleDateString("en-US", { month: "long", day: "numeric" })}, back to back`],
+  ["in bursts", pct(RP.in_bursts), "of reposts came in sittings of 10 or more"],
+  ["a 6 pm habit", hourName(RP.peak_hour), `${pct(RP.peak_hour_share)} of reposts; my likes peak at ${hourName(RP.like_peak_hour)}`],
+  ["what I repost", RL.slice(0, 2).map(r => r.topic.split(" & ")[0].split(",")[0].toLowerCase()).join(" & "), `${RL[0].lift}× and ${RL[1].lift}× more than in my likes`],
+  ["main reposts sound like", "“my longest relationship is apparently with my haters”", "values and comebacks, said in public"],
+  ["spam reposts sound like", "“becoming someone i look up to”", "affirmations, said to myself"],
+];
+document.getElementById("reposts").innerHTML = REPOST_CARDS.map(([k, big, line]) =>
+  `<div class="card"><span class="k">${k}</span><span class="${big.length > 24 ? "line" : "big"}">${big}</span><span class="meta">${line}</span></div>`).join("");
+// Meta's guesses vs my pipeline's topic shares (true = the data backs it up)
+const share = t => pct(byTopic[t].liked, 1) + " of my likes";
+const TAGCHECK = {
+  "relationships and romance": [true, `my #1 topic, ${share("Dating & relationships")}`],
+  "bollywood and indian culture": [true, `my #2 topic, ${share("Bollywood & desi")}`],
+  "taylor swift and music": [true, "300+ Taylor Swift reels liked"],
+  "self-care and wellness": [true, "the spam account's whole 2025"],
+  "family and parenting": [null, ""],
+  "motherhood and parenting journey": [true, share("Motherhood & babies")],
+  "beauty and skincare": [true, share("Makeup & beauty")],
+  "travel and adventure": [true, share("Travel & cities")],
+  "wedding and celebration": [true, share("Weddings & bridal")],
+  "music and inspiration": [true, "Ariana Grande and Taylor Swift, mostly"],
+  "lacrosse and humor": [false, `${D.tagged.lacrosse_likes} lacrosse reel liked, ever`],
+  "english language and learning": [false, "nothing in my likes points to this"],
+};
+const ADCHECK = {
+  "Away from hometown": [true, "Austin, by way of Dallas"], "Away from family": [true, "Austin, by way of Dallas"],
+  "Engaged Shoppers": [true, "89 add-to-carts reported to Meta"], "Food and Restaurants": [true, share("Food & coffee")],
+  "Frequent international travelers": [true, "India trips almost every year"], "Lives abroad": [false, "I live in Texas"],
+  "Small business owners": [false, "no business to own"], "Birthday in March": [true, "Pisces season"],
+};
+const tagCards = [...D.tagged.interests.map(t => [t.tag, "interest", ...(TAGCHECK[t.tag] || [null, ""])]),
+  ...D.tagged.ad_categories.filter(a => ADCHECK[a]).map(a => [a, "ad category", ...ADCHECK[a]])]
+  .filter(c => c[2] === true).slice(0, 15);
+document.getElementById("tagged").innerHTML = tagCards.map(([tag, kind, ok, why]) =>
+  `<div class="card ${ok === false ? "miss" : ""}"><span class="k">${kind}</span><span class="verdict">${ok === false ? "✗" : ok ? "✓" : ""}</span><span class="big">${tag}</span><span class="meta">${why}</span></div>`).join("");
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+  for (const id of ["posts", "saved", "reposts", "tagged"]) document.getElementById(id === "posts" ? "grid" : id).hidden = id !== b.dataset.tab;
+  document.getElementById("tabnote").textContent = TABNOTE[b.dataset.tab];
+});
+
+// ---------- viewer
+const viewer = document.getElementById("viewer"), frameEl = document.getElementById("frame");
+let cur = { s: 0, f: 0 };
+function render() {
+  const st = STORIES[cur.s], fr = st.frames[cur.f];
+  document.getElementById("bars").innerHTML = st.frames.map((_, i) => `<i class="${i <= cur.f ? "on" : ""}"></i>`).join("");
+  document.getElementById("sdot").innerHTML = `<span class="glyph">${st.name[0]}</span>`;
+  document.getElementById("swho").textContent = st.name;
+  document.getElementById("spos").textContent = `${cur.f + 1}/${st.frames.length}`;
+  frameEl.innerHTML = `<p class="kicker">${fr.kicker}</p><h2>${fr.title}</h2>` + (fr.lede ? `<p class="lede">${fr.lede}</p>` : "");
+  if (fr.chart) { const c = document.createElement("div"); c.className = "chart"; c.append(fr.chart()); frameEl.append(c); }
+  if (fr.body) frameEl.insertAdjacentHTML("beforeend", fr.body());
+  if (fr.table) {
+    const btn = document.createElement("button"), box = document.createElement("div");
+    btn.className = "datatoggle"; btn.textContent = "View data"; box.hidden = true; box.innerHTML = fr.table();
+    btn.onclick = () => { box.hidden = !box.hidden; btn.textContent = box.hidden ? "View data" : "Hide data"; };
+    frameEl.append(btn, box);
+  }
+  if (fr.note) frameEl.insertAdjacentHTML("beforeend", `<p class="note">${typeof fr.note === "function" ? fr.note() : fr.note}</p>`);
+  frameEl.scrollTop = 0;
+  document.querySelector(`.hl[data-open="${st.id}"]`)?.classList.add("seen");
+  if (st.id === "week") document.querySelector(".avatar").classList.add("seen");
+}
+function open(id, f = 0) { cur = { s: STORIES.findIndex(s => s.id === id), f: +f }; viewer.classList.add("open"); render(); document.getElementById("close").focus(); }
+function close() { viewer.classList.remove("open"); hideTip(); }
+function step(d) {
+  const st = STORIES[cur.s];
+  if (cur.f + d >= 0 && cur.f + d < st.frames.length) cur.f += d;
+  else if (d > 0 && cur.s < STORIES.length - 1) cur = { s: cur.s + 1, f: 0 };
+  else if (d < 0 && cur.s > 0) cur = { s: cur.s - 1, f: STORIES[cur.s - 1].frames.length - 1 };
+  else if (d > 0) return close();
+  render();
+}
+document.addEventListener("click", e => { const t = e.target.closest("[data-open]"); if (t) open(t.dataset.open, t.dataset.frame || 0); });
+document.getElementById("close").onclick = close;
+document.getElementById("prev").onclick = () => step(-1);
+document.getElementById("next").onclick = () => step(1);
+viewer.addEventListener("click", e => { if (e.target === viewer) close(); });
+document.addEventListener("keydown", e => {
+  if (!viewer.classList.contains("open")) return;
+  if (e.key === "ArrowRight") step(1); else if (e.key === "ArrowLeft") step(-1); else if (e.key === "Escape") close();
+});
+let touchX = null;
+viewer.addEventListener("touchstart", e => touchX = e.touches[0].clientX, { passive: true });
+viewer.addEventListener("touchend", e => { if (touchX == null) return; const dx = e.changedTouches[0].clientX - touchX; if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); touchX = null; });
+
+// ---------- tooltip (hover on desktop, tap on touch)
+const tip = document.getElementById("tip");
+function showTip(el, x, y) { tip.textContent = el.dataset.tip ?? el.getAttribute("data-tip"); tip.classList.add("on");
+  const r = tip.getBoundingClientRect(); tip.style.left = Math.min(x + 12, innerWidth - r.width - 8) + "px"; tip.style.top = Math.max(8, y - r.height - 10) + "px"; }
+function hideTip() { tip.classList.remove("on"); }
+document.addEventListener("pointermove", e => { const el = e.target.closest?.("[data-tip]"); el ? showTip(el, e.clientX, e.clientY) : hideTip(); });
+document.addEventListener("pointerdown", e => { const el = e.target.closest?.("[data-tip]"); if (el && e.pointerType !== "mouse") showTip(el, e.clientX, e.clientY); });
+</script>
+</body>
+</html>
