@@ -127,8 +127,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .doing p { font: 500 italic 21px/1.15 "Cormorant Garamond", serif; }
 .doing small { font-size: 11px; color: var(--muted); }
 .foot { margin-top: 40px; color: var(--muted); font-size: 13px; text-align: center; }
-.foot.credits { margin-top: 10px; font-size: 11px; line-height: 1.5; max-width: 560px; margin-inline: auto; }
-.foot a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .foot button { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- story viewer */
@@ -199,7 +197,7 @@ table.data td:not(:first-child), table.data th:not(:first-child) { text-align: r
 <body>
 <main class="wrap">
   <header class="profile">
-    <button class="avatar" data-open="week" aria-label="View this week's story"><img src="img/avatar.jpg" alt=""></button>
+    <button class="avatar" data-open="week" aria-label="View this week's story"><span class="glyph">♡</span></button>
     <div>
       <div class="collab">
         <span class="pair" aria-hidden="true"><i>H</i><i>S</i></span>
@@ -221,7 +219,6 @@ table.data td:not(:first-child), table.data th:not(:first-child) { text-align: r
   <section class="grid" id="reposts" hidden></section>
   <section class="grid" id="tagged" hidden></section>
   <p class="foot">Built from 2,447 export files with Python. <button data-open="method">How it was made</button></p>
-  <p class="foot credits">Photos from <a href="https://unsplash.com/?utm_source=double-tap&amp;utm_medium=referral">Unsplash</a>: Paolo Nicolello, Nathan Dumlao, Caleb Shong, Sidney Pearce, Olek Buzunov, Theo Crazzolara, Kajetan Sumila, Emily Irene Photo Co., Fernando Lavin, kevin turcios, Liosha Shyp, Marcos Paulo Prado, William Warby, Hồng Xuân Văn, Iuliia Pilipeichenko and Daria Glakteeva.</p>
 </main>
 
 <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-label="Story">
@@ -705,24 +702,20 @@ const STORIES = [
   ]},
 ];
 
-// free Unsplash photos (img/), one warm candlelit look; credits in the footer
-const PHOTO = new Set(["avatar", "hl-scrolling", "hl-deciding", "hl-swiping", "hl-loving", "hl-growing", "hl-giving"]);
-const face = st => PHOTO.has(st.img) ? `<img src="img/${st.img}.jpg" alt="">` : `<span class="glyph">${st.name[0]}</span>`;
-
 // highlight initials spell S-C-R-O-L-L
 const ORDER = ["week", "when", "speed", "reject", "taste", "growth", "giving", "method"];
 STORIES.sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
 
 const GRID = [
-  ["taste", 0, "hopeless romantic", "and ambitious, picky, stylish, dreamy", true, "romantic"],
-  ["reject", 0, "not for me", "other people's pets and weddings", true, "notforme"],
-  ["when", 0, pct(preBed), "of my taps are the pre‑bed doom scroll", false, "prebed"],
-  ["reject", 2, "the paradox", "I love Bollywood, just not the fan-page version", true, "bollywood"],
-  ["taste", "Two accounts, two girls", "two girls", "main is out with family; spam is home, journaling", true, "twogirls"],
-  ["speed", 0, "no is instant", "I reject faster than I like", true, "instant"],
-  ["growth", 2, "the love year", "2024: weddings, marriage and dating", true, "loveyear"],
-  ["growth", 3, "hype girl → shopper", "my comments, one era at a time", true, "shopper"],
-  ["taste", "The other account", "the comeback", "my spam account returns when I'm rebuilding", true, "comeback"],
+  ["taste", 0, "hopeless romantic", "and ambitious, picky, stylish, dreamy", true],
+  ["reject", 0, "not for me", "other people's pets and weddings", true],
+  ["when", 0, pct(preBed), "of my taps are the pre‑bed doom scroll"],
+  ["reject", 2, "the paradox", "I love Bollywood, just not the fan-page version", true],
+  ["taste", "Two accounts, two girls", "two girls", "main is out with family; spam is home, journaling", true],
+  ["speed", 0, "no is instant", "I reject faster than I like", true],
+  ["growth", 2, "the love year", "2024: weddings, marriage and dating", true],
+  ["growth", 3, "hype girl → shopper", "my comments, one era at a time", true],
+  ["taste", "The other account", "the comeback", "my spam account returns when I'm rebuilding", true],
 ];
 
 // ---------- page
@@ -734,13 +727,13 @@ const hlEl = document.getElementById("highlights");
 STORIES.filter(st => !st.hidden).forEach((st, i) => {
   const b = document.createElement("button");
   b.className = "hl"; b.dataset.open = st.id;
-  b.innerHTML = `<span class="ring">${face(st)}</span><small>${st.name}</small>`;
+  b.innerHTML = `<span class="ring"><span class="glyph">${st.name[0]}</span></span><small>${st.name}</small>`;
   hlEl.append(b);
 });
 const gridEl = document.getElementById("grid");
-GRID.forEach(([id, f, big, line, word, photo], i) => {
+GRID.forEach(([id, f, big, line, word], i) => {
   const st = STORIES.find(s => s.id === id), b = document.createElement("button");
-  b.className = "tile"; b.dataset.open = id; b.style.backgroundImage = `url(img/tile-${photo}.jpg)`; b.dataset.frame = typeof f === "string" ? st.frames.findIndex(fr => fr.kicker === f) : f; 
+  b.className = "tile"; b.dataset.open = id; b.dataset.frame = typeof f === "string" ? st.frames.findIndex(fr => fr.kicker === f) : f; 
   b.innerHTML = `<span class="k">${st.name}</span><span class="big${word ? " word" : ""}">${big}</span><span class="line">${line}</span>`;
   gridEl.append(b);
 });
@@ -821,7 +814,7 @@ let cur = { s: 0, f: 0 };
 function render() {
   const st = STORIES[cur.s], fr = st.frames[cur.f];
   document.getElementById("bars").innerHTML = st.frames.map((_, i) => `<i class="${i <= cur.f ? "on" : ""}"></i>`).join("");
-  document.getElementById("sdot").innerHTML = face(st);
+  document.getElementById("sdot").innerHTML = `<span class="glyph">${st.name[0]}</span>`;
   document.getElementById("swho").textContent = st.name;
   document.getElementById("spos").textContent = `${cur.f + 1}/${st.frames.length}`;
   frameEl.innerHTML = `<p class="kicker">${fr.kicker}</p><h2>${fr.title}</h2>` + (fr.lede ? `<p class="lede">${fr.lede}</p>` : "");
